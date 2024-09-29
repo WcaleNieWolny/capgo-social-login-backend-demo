@@ -47,8 +47,7 @@ const getClientSecret = (platform: "ios" | "android") => {
   return token
 }
 
-const BASE_REDIRECT = "capgo-demo-app://path"
-const RAW_BASE_REDIRECT = "/magictest"
+const BASE_REDIRECT = process.env.BASE_REDIRECT_URL
 
 app.post('/login/callback', async (c) => {
   const body = (await c.req.formData())
@@ -58,13 +57,10 @@ app.post('/login/callback', async (c) => {
 
   const userStr = body.get('user')
 
-  console.log(userStr)
-  console.log(process.env)
-  console.log(c.req.queries())
   if (userStr) {
     if (typeof userStr != 'string') {
       console.error("Tried to upload file?")
-      c.redirect('?success=false')
+      c.redirect(`${BASE_REDIRECT}?success=false`)
       return
     }
 
@@ -77,7 +73,6 @@ app.post('/login/callback', async (c) => {
       redirect_uri: process.env.REDIRECT_URI,
       client_id: getClientId(platform),
       client_secret: clientSecret,
-      scope: process.env.SCOPE
     }
 
     console.log(requestBody)
@@ -106,14 +101,14 @@ app.post('/login/callback', async (c) => {
     })
 
     if (!appleRes) {
-      return c.redirect('?success=false')
+      return c.redirect(`${BASE_REDIRECT}?success=false`)
     }
 
     const appleData = appleRes.data as { access_token: string, refresh_token: string, id_token: string }
     const parsedJwt = jsonwebtoken.decode(appleData.id_token, { complete: true })
     if (!parsedJwt || typeof parsedJwt.payload === 'string' || !parsedJwt.payload.sub || typeof parsedJwt.payload.sub != 'string') {
       console.log(`no jwt?? JWT: ${parsedJwt} Data: ${JSON.stringify(appleData)}`)
-      return c.redirect('?success=false')
+      return c.redirect(`${BASE_REDIRECT}?success=false`)
     }
 
     await db.update(({ users }) => users.push({
@@ -133,7 +128,7 @@ app.post('/login/callback', async (c) => {
   if (platform != 'ios') {
     return c.redirect(`${BASE_REDIRECT}?success=true&code=${body.get('code')}&client_secret=${clientSecret}`)
   } else {
-    return c.redirect(`?success=true&ios_no_code=true`)
+    return c.redirect(`${BASE_REDIRECT}?success=true&ios_no_code=true`)
   }
 })
 
@@ -167,39 +162,6 @@ async function getApplePublicKey(kid: String) {
 
   return appleKeys.find(key => key.kid === kid)
 }
-
-app.get('.well-known/assetlinks.json', async (c) => {
-  return c.json([{
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target" : { 
-      "namespace": "android_app", 
-      "package_name": "com.example.app",
-      "sha256_cert_fingerprints": ["65:E5:17:26:7D:0F:30:CE:9C:DC:45:50:D8:2E:8A:73:04:0E:CF:0F:0E:BD:93:1B:A3:87:B0:37:AA:DA:FA:1C"] 
-    }
-  }])
-})
-
-app.get('/magictest', async (c) => {
-  const parms = Array.from(new Map(Object.entries(c.req.query())));
-  // console.log(c.req.param())
-
-  return c.html(`
-    <html>
-      <head>
-        <title>Simple Hono Website</title>
-        <script>
-          window.onload = function() {
-            window.location.replace('${BASE_REDIRECT}${parms.length > 0 ? `?${parms.map(val => `${val[0]}=${val[1]}`).join('&')}` : ''}');
-          }
-        </script>
-      </head>
-      <body>
-        <h1>Hello, Welcome to My Hono Website!</h1>
-        <p>This page will redirect you soon...</p>
-      </body>
-    </html>
-  `)
-})
 
 app.use('/userdata', cors())
 app.get('/userdata', async (c) => {
