@@ -1,0 +1,22 @@
+{
+  "name": "test-backend",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/jwk-to-pem": "^2.0.3",
+    "axios": "^1.7.7",
+    "hono": "^4.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "jwk-to-pem": "^2.0.6",
+    "lowdb": "^7.0.1",
+    "pm2": "^5.4.2",
+    "query-string": "^9.1.0"
+  }
+}

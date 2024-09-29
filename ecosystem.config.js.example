@@ -1,0 +1,18 @@
+module.exports = {
+  apps: [
+    {
+      name: "app", // Name of your application
+      script: "index.ts", // Entry point of your application
+      interpreter: "/home/main/.bun/bin/bun", // Path to the Bun interpreter
+      env: {
+        PRIVATE_KEY_FILE: "AuthKey.p8",
+        KEY_ID: "",
+        TEAM_ID: "",
+        ANDROID_SERVICE_ID: "",
+        IOS_SERVICE_ID: "",
+        PORT: 3000,
+        REDIRECT_URI: "https://xyz.wcaleniewolny.me/login/callback"
+      }
+    }
+  ]
+};
