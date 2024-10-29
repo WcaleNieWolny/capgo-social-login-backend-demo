@@ -132,6 +132,26 @@ app.post('/login/callback', async (c) => {
   }
 })
 
+app.post('/auth/google_validation', async (c) => {
+  let authHeader = c.req.header('Authorization')
+
+  if (!authHeader) {
+    return c.json({ error: 'No auth header' }, 401)
+  }
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    authHeader = authHeader.substring(7)
+  }
+
+  const googleValidationRes = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${authHeader}`)
+  if (googleValidationRes.status !== 200) {
+    return c.json({ error: 'Google could not verify access token' }, 401)
+  }
+
+  const googleRes = await googleValidationRes.json() as { email: string }
+  return c.text(`Hello ${googleRes.email}!`)
+})
+
 // TODO: add a last fetch, if key is not found locally and last fetch was > 5 mins ago refetch
 async function getApplePublicKey(kid: String) {
   if (appleKeys.length === 0) {
